@@ -1,0 +1,105 @@
+version: '3.7'
+# ERROR - Removed subprocess.CalledProcessError: 
+# Command '['/usr/local/bin/docker-credential-desktop', 'get']' 
+# returned non-zero exit status 1
+
+# SOLUTION - Remove "credsStore":"desktop" from ~/.docker/config.json 
+# Original Content of ~/.docker/config.json
+# {"auths":{},"credsStore":"", "credsStore":"desktop","stackOrchestrator":"swarm"}
+# Update it to this
+# {"auths":{},"credsStore":"","stackOrchestrator":"swarm"}
+# OR
+# {"auths":{},"stackOrchestrator":"swarm"}
+services:
+    currency-conversion-service:
+        depends_on: 
+            - currency-exchange-service
+            - netflix-zuul-api-gateway-server
+            - rabbitmq
+            - netflix-eureka-naming-server
+#        environment: 
+#            CURRENCY_EXCHANGE_URI: http://currency-exchange-service:8000
+#            RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+        image: fcadili/currency-conversion-service:0.0.1-SNAPSHOT
+#        build:
+#            context: currency-conversion-service
+#            dockerfile: Dockerfile
+        ports:
+            - "8100:8100"
+        restart: always
+        networks:
+            - microservices-network
+
+    currency-exchange-service:
+        depends_on: 
+            - netflix-zuul-api-gateway-server
+            - rabbitmq
+            - netflix-eureka-naming-server
+#        environment: 
+#            RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+        image: fcadili/currency-exchange-service:0.0.1-SNAPSHOT
+#        build:
+#            context: currency-exchange-service
+#            dockerfile: Dockerfile
+#        ports:
+#            - "8000:8000"
+        restart: always
+        networks:
+            - microservices-network
+    
+    netflix-zuul-api-gateway-server:
+        depends_on: 
+            - rabbitmq
+            - netflix-eureka-naming-server
+#        environment: 
+#            RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+        image: fcadili/netflix-zuul-api-gateway-server:0.0.1-SNAPSHOT
+#        build:
+#            context: netflix-zuul-api-gateway-server
+#            dockerfile: Dockerfile
+        ports:
+            - "8765:8765"
+        restart: always
+        networks:
+            - microservices-network
+
+# documentation of environment variables: https://github.com/openzipkin/zipkin/blob/master/zipkin-server/README.md
+# STORAGE_TYPE: SpanStore implementation: one of mem, mysql, cassandra, elasticsearch
+#
+# documentation of connector rabbitmq: https://github.com/openzipkin/zipkin/tree/master/zipkin-collector/rabbitmq
+# RABBIT_URI: RabbitMQ URI spec-compliant URI, ex. amqp://user:pass@host:10000/vhost
+    zipkin-server:
+        depends_on: 
+            - rabbitmq
+        image: openzipkin/zipkin
+        environment:
+            STORAGE_TYPE: mem
+            RABBIT_URI: amqp://guest:guest@rabbitmq:5672
+        ports:
+            - "9411:9411"
+        restart: always
+        networks:
+            - microservices-network
+
+    rabbitmq:
+        image: rabbitmq:3-management
+        ports:
+            - "5672:5672"
+            - "15672:15672"
+        restart: always
+        networks:
+            - microservices-network
+
+    netflix-eureka-naming-server:
+        image: fcadili/netflix-eureka-naming-server:0.0.1-SNAPSHOT
+#        build:
+#            context: netflix-eureka-naming-server
+#            dockerfile: Dockerfile
+        ports:
+            - "8761:8761"
+        restart: always
+        networks:
+            - microservices-network
+
+networks:
+    microservices-network:

@@ -1,0 +1,51 @@
+version: '3.8'
+# ERROR - Removed subprocess.CalledProcessError: 
+# Command '['/usr/local/bin/docker-credential-desktop', 'get']' 
+# returned non-zero exit status 1
+
+# SOLUTION - Remove "credsStore":"desktop" from ~/.docker/config.json 
+# Original Content of ~/.docker/config.json
+# {"auths":{},"credsStore":"", "credsStore":"desktop","stackOrchestrator":"swarm"}
+# Update it to this
+# {"auths":{},"credsStore":"","stackOrchestrator":"swarm"}
+# OR
+# {"auths":{},"stackOrchestrator":"swarm"}
+services:
+  todo-web-application-postgres:
+    #image: fcadili/03-todo-web-application-postgres:0.0.1-SNAPSHOT
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    restart: always
+    depends_on:
+      - postgresql
+    environment:
+      RDS_HOSTNAME: postgresql
+      RDS_PORT: 5432
+      RDS_DB_NAME: in28mins-01
+      RDS_USERNAME: in28mins
+      RDS_PASSWORD: in28mins
+    networks:
+      - todo-web-application
+  postgresql:
+    build:
+      context: .
+      dockerfile: Dockerfile-db
+    ports:
+      - "5432:5432"
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgresql
+    volumes:
+      - postgresql-data:/var/lib/postgresql/data
+    networks:
+      - todo-web-application
+
+#Volumes
+volumes:
+  postgresql-data:
+  
+networks:
+  todo-web-application:
