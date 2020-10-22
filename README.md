@@ -4,6 +4,11 @@ This project is based on Udemy course "Master Docker with Java - DevOps for Spri
 
 Created by [in28Minutes](https://www.udemy.com/user/in28minutes/)
 
+## NOTE
+
+The project will be merged will the original repository [in28minutes/docker-crash-course](https://github.com/in28minutes/docker-crash-course).
+See progress in [local docker-crash-course](https://github.com/fcadili/docker-crash-course)
+
 ## LICENSE
 
 The MIT License (MIT)
